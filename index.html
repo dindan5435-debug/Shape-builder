@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>3D Shape Builder</title>
+<meta name="description" content="เลือกรูปทรง 3 มิติ เทียบกับภาพโจทย์ 1st angle ของคุณ" />
+<meta name="theme-color" content="#1E3A5F" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="icon" href="./icons/favicon.png" />
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Shape Builder" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="shell">
+    <div class="header">
+      <div>
+        <div class="eyebrow mono label">3D Shape Builder</div>
+        <div class="title mono">เลือกทรง แล้วเทียบกับภาพโจทย์</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="ios-note mono">iPhone: แชร์ → เพิ่มไปยังหน้าจอโฮม</span>
+        <button id="install-btn" class="install-btn hidden">+ ติดตั้งแอป</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Sidebar -->
+      <div class="panel sidebar">
+        <div class="field">
+          <label class="field-label mono">รูปเต็ม ๆ คือทรงอะไร</label>
+          <select id="shape-select" class="cad-select"></select>
+          <p id="shape-info" class="shape-info"></p>
+        </div>
+
+        <div class="field">
+          <label class="field-label mono">ภาพด้านข้างที่โจทย์ให้</label>
+          <div class="toggle-row">
+            <button id="side-btn-left" class="toggle-btn">ด้านซ้าย (Left)</button>
+            <button id="side-btn-right" class="toggle-btn">ด้านขวา (Right)</button>
+          </div>
+          <p class="side-note">First Angle: Left จะถูกวางไว้ขวามือของ Front — Right จะถูกวางไว้ซ้ายมือของ Front (สลับกับที่คุ้นตา)</p>
+        </div>
+
+        <div id="corner-toggle-wrap" class="field">
+          <label class="field-label mono">มุมมองฐาน</label>
+          <div class="toggle-row">
+            <button id="corner-btn-flat" class="toggle-btn">หน้าตรง</button>
+            <button id="corner-btn-corner" class="toggle-btn">มุมจากสัน</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label mono">ภาพโจทย์</label>
+          <input id="ref-image-input" type="file" accept="image/*" class="hidden" />
+          <label for="ref-image-input" class="upload-btn">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>อัปโหลดภาพโจทย์</span>
+          </label>
+          <p class="ref-note">อัปโหลดไว้เทียบด้วยตา — โปรแกรมสร้างทรงตัวอย่างให้เพื่อการเรียนรู้ ไม่ได้อ่านขนาดจากรูปให้</p>
+          <img id="ref-image-preview" class="ref-image" alt="ภาพอ้างอิงจากโจทย์" />
+        </div>
+      </div>
+
+      <!-- Main 3D viewport -->
+      <div class="panel viewport">
+        <div class="viewport-head">
+          <div id="main-label" class="label mono"></div>
+          <button id="reset-view-btn" class="reset-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            รีเซ็ตมุมมอง
+          </button>
+        </div>
+        <div class="main-canvas-wrap grid-bg">
+          <canvas id="canvas-main"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orthographic views -->
+    <div class="panel ortho-panel">
+      <div id="ortho-heading" class="ortho-heading mono"></div>
+      <div class="ortho-grid">
+        <div id="cell-a" class="ortho-cell"></div>
+        <div id="cell-b" class="ortho-cell"></div>
+        <div id="cell-c" class="ortho-cell"></div>
+        <div id="cell-d" class="ortho-cell"></div>
+      </div>
+
+      <!-- panels get moved into the cells above by app.js -->
+      <div id="panel-front" class="view-panel">
+        <div class="view-canvas-wrap grid-bg"><canvas id="canvas-front"></canvas></div>
+        <div class="view-label mono">FRONT — ด้านหน้า</div>
+      </div>
+      <div id="panel-side" class="view-panel">
+        <div class="view-canvas-wrap grid-bg"><canvas id="canvas-side"></canvas></div>
+        <div id="side-label" class="view-label mono"></div>
+      </div>
+      <div id="panel-top" class="view-panel">
+        <div class="view-canvas-wrap grid-bg"><canvas id="canvas-top"></canvas></div>
+        <div class="view-label mono">TOP — ด้านบน</div>
+      </div>
+    </div>
+
+    <!-- Title block -->
+    <div class="titleblock mono">
+      <div><span id="title-label"></span></div>
+      <div class="glyph-group">
+        <svg width="46" height="18" viewBox="0 0 46 18" fill="none">
+          <circle cx="8" cy="9" r="6" stroke="#EEF1F4" stroke-width="1" />
+          <circle cx="20" cy="9" r="8" stroke="#EEF1F4" stroke-width="1" />
+          <polygon points="32,3 44,3 40,15 36,15" stroke="#EEF1F4" stroke-width="1" fill="none" />
+        </svg>
+        <span>FIRST ANGLE PROJECTION</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
